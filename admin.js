@@ -7,6 +7,7 @@
   const STORAGE_ADMIN_RATE_LIMIT = "proit_landing_admin_rate_limit_v2";
   const LEGACY_ADMIN_PIN_KEY = "proit_landing_admin_pin_v1";
   const LEGACY_ADMIN_SESSION_KEY = "proit_landing_admin_session_v1";
+  const API_BASE = "/api";
 
   const SESSION_TTL_MS = 1000 * 60 * 60 * 8;
   const SESSION_IDLE_MS = 1000 * 60 * 15;
@@ -184,6 +185,37 @@
   };
 
   const nextId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+
+  const fetchApi = async (path, options = {}) => {
+    const response = await fetch(`${API_BASE}${path}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      },
+      ...options
+    });
+
+    if (!response.ok) {
+      let message = "Ошибка API";
+      try {
+        const payload = await response.json();
+        message = payload?.error || message;
+      } catch (_error) {
+        // Ignore JSON parse errors and use default message.
+      }
+      throw new Error(message);
+    }
+
+    if (response.status === 204) {
+      return null;
+    }
+    return response.json();
+  };
+
+  const loadApplicationsFromApi = async () => {
+    const items = await fetchApi("/applications", { method: "GET" });
+    state.applications = pruneApplications(Array.isArray(items) ? items : []);
+  };
 
   const normalizeApplication = (application) => {
     const createdAt = application?.createdAt ? String(application.createdAt) : new Date().toISOString();
@@ -674,9 +706,7 @@
       }
       state.publicKey = await window.ProItSecurity.importPublicKey(state.authBundle);
       state.privateKey = await window.ProItSecurity.unlockPrivateKey(state.authBundle, password);
-      state.applications = await decryptApplicationsFromStorage(state.privateKey);
-      await mergeLegacyApplications();
-      state.applications = await decryptApplicationsFromStorage(state.privateKey);
+      await loadApplicationsFromApi();
     };
 
     refreshLoginMode();
@@ -743,13 +773,26 @@
       button.addEventListener("click", () => setTab(button.dataset.tab));
     });
 
-    byId("applicationsTableBody").addEventListener("click", (event) => {
+    byId("applicationsTableBody").addEventListener("click", async (event) => {
       const toggleButton = event.target.closest("[data-toggle-processed]");
       if (toggleButton) {
         const appId = toggleButton.dataset.toggleProcessed;
-        state.applications = state.applications.map((app) => app.id === appId ? { ...app, processed: !app.processed } : app);
-        renderApplicationsTable();
-        void persistApplicationsSecure("Статус заявки обновлён.");
+        const target = state.applications.find((app) => app.id === appId);
+        if (!target) {
+          return;
+        }
+        const nextProcessed = !target.processed;
+        try {
+          await fetchApi(`/applications/${encodeURIComponent(appId)}/processed`, {
+            method: "PATCH",
+            body: JSON.stringify({ processed: nextProcessed })
+          });
+          target.processed = nextProcessed;
+          renderApplicationsTable();
+          showToast("Статус заявки обновлён.");
+        } catch (error) {
+          showToast(error?.message || "Не удалось обновить статус заявки.");
+        }
         return;
       }
 
@@ -758,20 +801,30 @@
         return;
       }
       const appId = deleteButton.dataset.deleteApp;
-      state.applications = state.applications.filter((app) => app.id !== appId);
-      renderApplicationsTable();
-      void persistApplicationsSecure("Заявка удалена.");
+      try {
+        await fetchApi(`/applications/${encodeURIComponent(appId)}`, { method: "DELETE" });
+        state.applications = state.applications.filter((app) => app.id !== appId);
+        renderApplicationsTable();
+        showToast("Заявка удалена.");
+      } catch (error) {
+        showToast(error?.message || "Не удалось удалить заявку.");
+      }
     });
 
     byId("exportApplicationsBtn").addEventListener("click", exportApplicationsXlsx);
 
-    byId("clearApplicationsBtn").addEventListener("click", () => {
+    byId("clearApplicationsBtn").addEventListener("click", async () => {
       if (!window.confirm("Удалить все заявки?")) {
         return;
       }
-      state.applications = [];
-      renderApplicationsTable();
-      void persistApplicationsSecure("Все заявки очищены.");
+      try {
+        await fetchApi("/applications", { method: "DELETE" });
+        state.applications = [];
+        renderApplicationsTable();
+        showToast("Все заявки очищены.");
+      } catch (error) {
+        showToast(error?.message || "Не удалось очистить заявки.");
+      }
     });
 
     byId("contentForm").addEventListener("submit", (event) => {
@@ -977,7 +1030,7 @@
         saveAuthBundle(updatedBundle);
         state.publicKey = await window.ProItSecurity.importPublicKey(updatedBundle);
         state.privateKey = await window.ProItSecurity.unlockPrivateKey(updatedBundle, newPassword);
-        await persistApplicationsSecure();
+        await loadApplicationsFromApi();
         form.reset();
         showToast("Пароль обновлён.");
       } catch (error) {
@@ -993,12 +1046,6 @@
       if (event.key === STORAGE_CONTENT) {
         state.data = loadData();
         renderAllPanels();
-      }
-      if (event.key === STORAGE_APPLICATIONS_SECURE && state.privateKey) {
-        void decryptApplicationsFromStorage(state.privateKey).then((applications) => {
-          state.applications = applications;
-          renderApplicationsTable();
-        });
       }
       if (event.key === STORAGE_ADMIN_AUTH && state.privateKey) {
         clearSession();

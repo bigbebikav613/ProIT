@@ -5,6 +5,7 @@
   const STORAGE_ADMIN_AUTH = "proit_landing_admin_auth_v2";
   const STORAGE_GALLERY_PREVIEWS = "proit_landing_gallery_previews_v1";
   const STORAGE_THEME = "proit_landing_theme_v1";
+  const API_BASE = "/api";
   const APPLICATION_RETENTION_DAYS = 180;
   const PRIVACY_POLICY_VERSION = "2026-04-14";
 
@@ -73,6 +74,32 @@
   };
 
   const uid = (prefix = "id") => `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+
+  const fetchApi = async (path, options = {}) => {
+    const response = await fetch(`${API_BASE}${path}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      },
+      ...options
+    });
+
+    if (!response.ok) {
+      let message = "Ошибка API";
+      try {
+        const payload = await response.json();
+        message = payload?.error || message;
+      } catch (_error) {
+        // Ignore JSON parse errors and use default message.
+      }
+      throw new Error(message);
+    }
+
+    if (response.status === 204) {
+      return null;
+    }
+    return response.json();
+  };
 
   const buildDefaultData = () => {
     if (typeof window.PRO_IT_BUILD_DEFAULT_DATA === "function") {
@@ -860,54 +887,15 @@
       processed: false,
       ...application
     };
-
-    const publicKey = await getPublicKey();
-    const encrypted = await window.ProItSecurity.encryptApplicationRecord(entry, publicKey);
-    const current = pruneEncryptedApplications(loadSecureApplications());
-    current.unshift(encrypted);
-    saveSecureApplications(pruneEncryptedApplications(current));
+    await fetchApi("/applications", {
+      method: "POST",
+      body: JSON.stringify(entry)
+    });
   };
 
   const migrateLegacyApplications = async () => {
-    const legacy = loadLegacyApplications();
-    if (!legacy.length) {
-      return;
-    }
-    const cutoff = cutoffTimestamp();
-    const publicKey = await getPublicKey();
-    const secure = pruneEncryptedApplications(loadSecureApplications());
-    const knownIds = new Set(secure.map((item) => String(item?.meta?.id || "")).filter(Boolean));
-
-    for (const item of legacy) {
-      const createdAt = Date.parse(String(item?.createdAt || ""));
-      if (!Number.isFinite(createdAt) || createdAt < cutoff) {
-        continue;
-      }
-      const normalized = {
-        id: String(item?.id || uid("app")),
-        createdAt: String(item?.createdAt || new Date().toISOString()),
-        processed: Boolean(item?.processed),
-        source: String(item?.source || ""),
-        courseId: String(item?.courseId || ""),
-        courseTitle: String(item?.courseTitle || ""),
-        fullName: String(item?.fullName || ""),
-        phone: String(item?.phone || ""),
-        email: String(item?.email || ""),
-        format: String(item?.format || ""),
-        comment: String(item?.comment || ""),
-        consentPolicyVersion: String(item?.consentPolicyVersion || PRIVACY_POLICY_VERSION),
-        consentAcceptedAt: String(item?.consentAcceptedAt || item?.createdAt || new Date().toISOString())
-      };
-      if (knownIds.has(normalized.id)) {
-        continue;
-      }
-      const encrypted = await window.ProItSecurity.encryptApplicationRecord(normalized, publicKey);
-      secure.unshift(encrypted);
-      knownIds.add(normalized.id);
-    }
-
-    saveSecureApplications(pruneEncryptedApplications(secure));
-    localStorage.removeItem(STORAGE_APPLICATIONS_LEGACY);
+    // Applications are stored in SQL via API now; legacy localStorage migration is disabled.
+    return Promise.resolve();
   };
 
   const handleMainEnrollmentSubmit = async (event) => {
