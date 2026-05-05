@@ -1,0 +1,299 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Школа ПРО IT | ИКТИБ ЮФУ</title>
+  <meta name="description" content="Одностраничный сайт Школы ПРО IT: направления, преподаватели, достижения, отзывы и запись на обучение.">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="security.js"></script>
+  <script defer src="shared-data.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="tech-grid" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="#top" id="brandTrigger">
+        
+        <span class="brand-logo-slot">
+          <img
+            id="headerYufuLogo"
+            class="brand-logo-image"
+            src="logos/ЛОГО ЮФУ.png"
+            data-logo-light="logos/ЛОГОюфу2.png"
+            data-logo-dark="logos/ЛОГО ЮФУ.png"
+            alt="Логотип ЮФУ"
+          >
+        </span>
+      </a>
+      <button class="nav-toggle" id="navToggle" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="siteNav">☰</button>
+      <nav class="nav-links" id="siteNav">
+        <a href="#about">О школе</a>
+        <a href="#courses">Курсы</a>
+        <a href="#teachers">Преподаватели</a>
+        <a href="#reviews">Отзывы</a>
+        <a href="#location">Контакты</a>
+      </nav>
+      <div class="topbar-actions">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему" aria-pressed="false">
+          <span class="theme-icon sun" aria-hidden="true">☀</span>
+          <span class="theme-icon moon" aria-hidden="true">☾</span>
+          <span class="theme-thumb" aria-hidden="true"></span>
+        </button>
+        <a class="btn btn-solid btn-sm header-enroll-btn" href="#enroll">Записаться</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-layout">
+        <div class="hero-content reveal">
+          <p class="eyebrow">Проектная школа на базе ИКТИБ ЮФУ</p>
+          <h1 id="heroTitle">Школа ПРО IT Таганрог</h1>
+          <p id="heroSubtitle" class="hero-subtitle"></p>
+          <div class="hero-actions">
+            <a class="btn btn-solid" href="#enroll" id="heroPrimaryCta">Записаться на обучение</a>
+            <a class="btn btn-ghost" href="#courses" id="heroSecondaryCta">Смотреть курсы</a>
+          </div>
+          <ul class="hero-meta" id="heroMeta"></ul>
+        </div>
+
+        <aside class="terminal reveal">
+          <div class="terminal-head">
+            <span class="terminal-led led-red"></span>
+            <span class="terminal-led led-yellow"></span>
+            <span class="terminal-led led-green"></span>
+            <span class="terminal-title">school_pro_it.ts</span>
+          </div>
+          <pre id="heroCode" class="terminal-code"></pre>
+        </aside>
+      </div>
+    </section>
+
+    <section id="about" class="section section-alt">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">О проекте</p>
+          <h2>Краткое описание школы</h2>
+        </div>
+        <div class="about-grid">
+          <article class="about-card reveal">
+            <p id="aboutLead" class="about-lead"></p>
+            <p id="aboutDescription"></p>
+          </article>
+          <aside class="about-card reveal">
+            <h3>Почему выбирают ПРО IT</h3>
+            <ul id="aboutPoints" class="bullet-list"></ul>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="achievements" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Достижения</p>
+          <h2>Результаты школы и учеников</h2>
+        </div>
+        <div class="achievements-grid" id="achievementsGrid"></div>
+      </div>
+    </section>
+
+    <section id="courses" class="section section-alt">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Направления</p>
+          <h2>Выберите курс</h2>
+        </div>
+        <div class="courses-grid" id="coursesGrid"></div>
+      </div>
+    </section>
+
+    <section id="teachers" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Команда</p>
+          <h2>Преподаватели школы</h2>
+        </div>
+        <div class="teachers-grid" id="teachersGrid"></div>
+      </div>
+    </section>
+
+    <section id="gallery" class="section section-alt">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Галерея</p>
+          <h2>Жизнь Школы ПРО IT</h2>
+        </div>
+        <div class="carousel-shell">
+          <button class="carousel-arrow carousel-arrow-left" type="button" data-carousel-prev="gallery" aria-label="Прокрутить галерею влево">‹</button>
+          <div class="gallery-grid" id="galleryGrid"></div>
+          <button class="carousel-arrow carousel-arrow-right" type="button" data-carousel-next="gallery" aria-label="Прокрутить галерею вправо">›</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="reviews" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Отзывы</p>
+          <h2>Что говорят ученики и родители</h2>
+        </div>
+        <div class="carousel-shell">
+          <button class="carousel-arrow carousel-arrow-left" type="button" data-carousel-prev="reviews" aria-label="Прокрутить отзывы влево">‹</button>
+          <div class="reviews-grid" id="reviewsGrid"></div>
+          <button class="carousel-arrow carousel-arrow-right" type="button" data-carousel-next="reviews" aria-label="Прокрутить отзывы вправо">›</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="enroll" class="section section-alt">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Форма записи</p>
+          <h2>Оставьте заявку на обучение</h2>
+        </div>
+        <form id="mainEnrollmentForm" class="form-card reveal">
+          <div class="form-grid">
+            <label>
+              ФИО
+              <input type="text" name="fullName" required placeholder="Иванов Иван">
+            </label>
+            <label>
+              Телефон
+              <input type="tel" name="phone" required placeholder="+7 (900) 000-00-00">
+            </label>
+            <label>
+              Курс
+              <select name="courseId" id="mainCourseSelect" required></select>
+            </label>
+            <label>
+              Формат
+              <select name="format" required>
+                <option value="очно">Очно</option>
+                <option value="онлайн">Онлайн</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Комментарий
+            <textarea name="comment" rows="4" placeholder="Во сколько вам позвонить и т.д"></textarea>
+          </label>
+          <label class="consent-check">
+            <input type="checkbox" name="privacyConsent" required>
+            <span>Даю согласие на обработку персональных данных в соответствии с <a href="privacy.html" target="_blank" rel="noopener">Политикой обработки ПДн</a>.</span>
+          </label>
+          <button class="btn btn-solid" type="submit">Отправить заявку</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="location" class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Где мы находимся</p>
+          <h2>Карта и контакты</h2>
+        </div>
+        <div class="location-grid">
+          <div class="map-box reveal">
+            <iframe id="mapFrame" title="Карта Школы ПРО IT" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          <div class="contacts-card reveal">
+            <h3 id="contactsSchoolName">Школа ПРО IT Таганрог</h3>
+            <ul class="contacts-list">
+              <li><span>Адрес:</span> <strong id="contactAddress"></strong></li>
+              <li><span>Телефон:</span> <a id="contactPhone" href="#"></a></li>
+              <li><span>E-mail:</span> <a id="contactEmail" href="#"></a></li>
+              <li><span>VK:</span> <a id="contactVk" href="#" target="_blank" rel="noopener">Открыть паблик</a></li>
+              <li><span>Telegram:</span> <a id="contactTg" href="#" target="_blank" rel="noopener">Канал школы</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-logos">
+        
+        <span class="footer-logo-slot">
+          <img
+            id="footerYufuLogo"
+            class="footer-logo footer-logo-primary"
+            src="logos/ЛОГО ЮФУ.png"
+            data-logo-light="logos/ЛОГОюфу2.png"
+            data-logo-dark="logos/ЛОГО ЮФУ.png"
+            alt="Логотип ЮФУ"
+          >
+        </span>
+        <span class="footer-logo-slot"><img class="footer-logo" src="logos/логотип 3.png" alt=""></span>
+        <span class="footer-logo-slot"><img class="footer-logo" src="logos/Логотип 1.png" alt=""></span>
+        <span class="footer-logo-slot"><img class="footer-logo" src="logos/Логотип 2.png" alt=""></span>
+      </div>
+      <p class="form-note"><a href="privacy.html" target="_blank" rel="noopener">Политика обработки персональных данных</a></p>
+    </div>
+  </footer>
+
+  <div class="modal" id="courseModal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-dialog">
+      <button class="modal-close" type="button" aria-label="Закрыть" data-close-modal>×</button>
+      <div class="modal-body">
+        <div class="modal-course-head">
+          <p class="eyebrow">Карточка курса</p>
+          <h3 id="modalCourseTitle"></h3>
+        </div>
+        <div class="modal-layout">
+          <article>
+            <p id="modalCourseDescription"></p>
+            <div class="modal-teacher-card">
+              <img id="modalTeacherPhoto" alt="Фото преподавателя">
+              <div>
+                <p class="teacher-label">Преподаватель</p>
+                <h4 id="modalTeacherName"></h4>
+                <p id="modalTeacherRole"></p>
+              </div>
+            </div>
+            <div class="modal-course-facts">
+              <p><span>Возраст:</span> <strong id="modalCourseAge"></strong></p>
+              <p><span>Формат:</span> <strong id="modalCourseFormats"></strong></p>
+              <p><span>Срок обучения:</span> <strong id="modalCourseDuration"></strong></p>
+              <p><span>Стоимость:</span> <strong id="modalCoursePrice"></strong></p>
+            </div>
+          </article>
+          <form id="courseEnrollmentForm" class="modal-form">
+            <input type="hidden" name="courseId" id="modalCourseId">
+            <label>
+              ФИО
+              <input type="text" name="fullName" required>
+            </label>
+            <label>
+              Телефон
+              <input type="tel" name="phone" required>
+            </label>
+            <label>
+              Формат
+              <select name="format" id="modalFormatSelect" required></select>
+            </label>
+            <label>
+              Комментарий
+              <textarea name="comment" rows="3" placeholder="Во сколько вам позвонить и т.д"></textarea>
+            </label>
+            <label class="consent-check">
+              <input type="checkbox" name="privacyConsent" required>
+              <span>Даю согласие на обработку персональных данных в соответствии с <a href="privacy.html" target="_blank" rel="noopener">Политикой обработки ПДн</a>.</span>
+            </label>
+            <button class="btn btn-solid" type="submit">Записаться на курс</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" aria-live="polite"></div>
+</body>
+</html>

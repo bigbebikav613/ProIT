@@ -1,0 +1,172 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Админ-панель | Школа ПРО IT</title>
+  <meta name="description" content="Простая админ-панель для редактирования контента лендинга Школы ПРО IT.">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="security.js"></script>
+  <script defer src="shared-data.js"></script>
+  <script defer src="admin.js"></script>
+</head>
+<body class="admin-body">
+  <div class="admin-login-wrap" id="adminLoginWrap">
+    <form class="admin-login-card" id="adminLoginForm">
+      <h1>Админ-панель ПРО IT</h1>
+      <p id="adminLoginModeHint">Введите пароль для входа</p>
+      <input id="adminPasswordInput" type="password" placeholder="Пароль" autocomplete="current-password" required>
+      <div id="adminSetupFields" hidden>
+        <input id="adminPasswordConfirmInput" type="password" placeholder="Повторите пароль" autocomplete="new-password">
+        <p class="admin-help">Минимум 12 символов, буквы разного регистра, цифры и спецсимвол.</p>
+      </div>
+      <button class="btn btn-solid" id="adminLoginSubmitBtn" type="submit">Войти</button>
+      <p class="admin-login-error" id="adminLoginError"></p>
+      <a class="btn btn-ghost btn-sm" href="index.html">Вернуться на сайт</a>
+      <p class="admin-help">Защищенный вход: пароль хранится только в виде криптографического хеша.</p>
+    </form>
+  </div>
+
+  <div class="admin-app" id="adminApp" hidden>
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <h1>Школа ПРО IT — Администрирование</h1>
+        <p id="lastUpdatedLabel"></p>
+      </div>
+      <div class="admin-header-actions">
+        <a class="btn btn-ghost btn-sm" href="index.html" target="_blank" rel="noopener">Открыть лендинг</a>
+        <button class="btn btn-solid btn-sm" id="logoutBtn" type="button">Выйти</button>
+      </div>
+    </header>
+
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <button type="button" class="admin-tab-btn active" data-tab="applications">Заявки</button>
+        <button type="button" class="admin-tab-btn" data-tab="content">Контент</button>
+        <button type="button" class="admin-tab-btn" data-tab="achievements">Достижения</button>
+        <button type="button" class="admin-tab-btn" data-tab="courses">Курсы</button>
+        <button type="button" class="admin-tab-btn" data-tab="teachers">Преподаватели</button>
+        <button type="button" class="admin-tab-btn" data-tab="gallery">Галерея</button>
+        <button type="button" class="admin-tab-btn" data-tab="reviews">Отзывы</button>
+        <button type="button" class="admin-tab-btn" data-tab="settings">Настройки</button>
+      </aside>
+
+      <main class="admin-main">
+        <section class="admin-tab-panel active" id="tab-applications">
+          <div class="admin-panel-head">
+            <h2>Таблица с записями</h2>
+            <div class="admin-inline-actions">
+              <button class="btn btn-ghost btn-sm" id="exportApplicationsBtn" type="button">Экспорт XLSX</button>
+              <button class="btn btn-danger btn-sm" id="clearApplicationsBtn" type="button">Очистить все</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Курс</th>
+                  <th>ФИО</th>
+                  <th>Телефон</th>
+                  <th>Формат</th>
+                  <th>Комментарий</th>
+                  <th>Статус</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="applicationsTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="admin-tab-panel" id="tab-content">
+          <h2>Изменение основного контента</h2>
+          <form class="admin-form" id="contentForm">
+            <div class="admin-form-grid">
+              <label>Название школы <input name="schoolName" type="text" required></label>
+              <label>Подзаголовок в hero <input name="heroSubtitle" type="text"></label>
+              <label>Заголовок hero <input name="heroTitle" type="text" required></label>
+              <label>Слоган/статус <input name="tagline" type="text"></label>
+              <label>Текст кнопки 1 <input name="primaryCta" type="text"></label>
+              <label>Текст кнопки 2 <input name="secondaryCta" type="text"></label>
+              <label>Адрес <input name="address" type="text"></label>
+              <label>Телефон <input name="phone" type="text"></label>
+              <label>E-mail <input name="email" type="email"></label>
+              <label>VK <input name="vk" type="url"></label>
+              <label>Telegram <input name="telegram" type="url"></label>
+              <label>Карта (iframe src) <input name="mapEmbed" type="url"></label>
+            </div>
+            <label>Краткое описание школы <textarea name="aboutLead" rows="3"></textarea></label>
+            <label>Подробное описание школы <textarea name="aboutDescription" rows="5"></textarea></label>
+            <label>Преимущества (каждое с новой строки) <textarea name="aboutPoints" rows="5"></textarea></label>
+            <button class="btn btn-solid" type="submit">Сохранить контент</button>
+          </form>
+        </section>
+
+        <section class="admin-tab-panel" id="tab-achievements">
+          <div class="admin-panel-head">
+            <h2>Редактирование достижений</h2>
+            <button class="btn btn-ghost btn-sm" id="addAchievementBtn" type="button">Добавить достижение</button>
+          </div>
+          <div id="achievementsEditor" class="collection-editor"></div>
+          <button class="btn btn-solid" id="saveAchievementsBtn" type="button">Сохранить достижения</button>
+        </section>
+
+        <section class="admin-tab-panel" id="tab-courses">
+          <div class="admin-panel-head">
+            <h2>Курсы: изменение и добавление</h2>
+            <button class="btn btn-ghost btn-sm" id="addCourseBtn" type="button">Добавить курс</button>
+          </div>
+          <div id="coursesEditor" class="collection-editor"></div>
+          <button class="btn btn-solid" id="saveCoursesBtn" type="button">Сохранить курсы</button>
+        </section>
+
+        <section class="admin-tab-panel" id="tab-teachers">
+          <div class="admin-panel-head">
+            <h2>Преподаватели</h2>
+            <button class="btn btn-ghost btn-sm" id="addTeacherBtn" type="button">Добавить преподавателя</button>
+          </div>
+          <div id="teachersEditor" class="collection-editor"></div>
+          <button class="btn btn-solid" id="saveTeachersBtn" type="button">Сохранить преподавателей</button>
+        </section>
+
+        <section class="admin-tab-panel" id="tab-gallery">
+          <div class="admin-panel-head">
+            <h2>Галерея школы</h2>
+            <button class="btn btn-ghost btn-sm" id="addGalleryBtn" type="button">Добавить фото</button>
+          </div>
+          <div id="galleryEditor" class="collection-editor"></div>
+          <button class="btn btn-solid" id="saveGalleryBtn" type="button">Сохранить галерею</button>
+        </section>
+
+        <section class="admin-tab-panel" id="tab-reviews">
+          <div class="admin-panel-head">
+            <h2>Отзывы</h2>
+            <button class="btn btn-ghost btn-sm" id="addReviewBtn" type="button">Добавить отзыв</button>
+          </div>
+          <div id="reviewsEditor" class="collection-editor"></div>
+          <button class="btn btn-solid" id="saveReviewsBtn" type="button">Сохранить отзывы</button>
+        </section>
+
+        <section class="admin-tab-panel" id="tab-settings">
+          <h2>Настройки админ-панели</h2>
+          <form class="admin-form" id="passwordForm">
+            <div class="admin-form-grid">
+              <label>Текущий пароль <input type="password" name="currentPassword" autocomplete="current-password" required></label>
+              <label>Новый пароль <input type="password" name="newPassword" autocomplete="new-password" required></label>
+              <label>Повторите новый пароль <input type="password" name="confirmNewPassword" autocomplete="new-password" required></label>
+            </div>
+            <button class="btn btn-solid" type="submit">Сменить пароль</button>
+          </form>
+          <p class="admin-help">
+            Рекомендуется менять пароль каждые 90 дней и использовать уникальную комбинацию.
+          </p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="adminToast" aria-live="polite"></div>
+</body>
+</html>
+
