@@ -5,6 +5,7 @@
   const STORAGE_ADMIN_AUTH = "proit_landing_admin_auth_v2";
   const STORAGE_ADMIN_SESSION = "proit_landing_admin_session_v2";
   const STORAGE_ADMIN_RATE_LIMIT = "proit_landing_admin_rate_limit_v2";
+  const STORAGE_ADMIN_SERVER_CSRF = "proit_landing_admin_server_csrf_v1";
   const LEGACY_ADMIN_PIN_KEY = "proit_landing_admin_pin_v1";
   const LEGACY_ADMIN_SESSION_KEY = "proit_landing_admin_session_v1";
   const API_BASE = "/api";
@@ -150,6 +151,20 @@
   };
 
   const loadAuthBundle = () => parseJsonStorage(STORAGE_ADMIN_AUTH, null);
+  const loadServerCsrfToken = () => {
+    try {
+      return String(sessionStorage.getItem(STORAGE_ADMIN_SERVER_CSRF) || "");
+    } catch (_error) {
+      return "";
+    }
+  };
+  const saveServerCsrfToken = (token) => {
+    if (!token) {
+      sessionStorage.removeItem(STORAGE_ADMIN_SERVER_CSRF);
+      return;
+    }
+    sessionStorage.setItem(STORAGE_ADMIN_SERVER_CSRF, String(token));
+  };
 
   const saveAuthBundle = (bundle) => {
     localStorage.setItem(STORAGE_ADMIN_AUTH, JSON.stringify(bundle));
@@ -161,6 +176,8 @@
     activeTab: "applications",
     toastTimer: null,
     authBundle: loadAuthBundle(),
+    serverAuthConfigured: true,
+    serverCsrfToken: loadServerCsrfToken(),
     privateKey: null,
     publicKey: null,
     sessionWatcher: null,
@@ -187,11 +204,20 @@
   const nextId = (prefix) => `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
 
   const fetchApi = async (path, options = {}) => {
+    const method = String(options.method || "GET").toUpperCase();
+    const headers = {
+      ...(options.headers || {})
+    };
+    if (!Object.prototype.hasOwnProperty.call(headers, "Content-Type")) {
+      headers["Content-Type"] = "application/json";
+    }
+    if (state.serverCsrfToken && !["GET", "HEAD", "OPTIONS"].includes(method)) {
+      headers["X-CSRF-Token"] = state.serverCsrfToken;
+    }
+
     const response = await fetch(`${API_BASE}${path}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {})
-      },
+      credentials: "same-origin",
+      headers,
       ...options
     });
 
@@ -215,6 +241,38 @@
   const loadApplicationsFromApi = async () => {
     const items = await fetchApi("/applications", { method: "GET" });
     state.applications = pruneApplications(Array.isArray(items) ? items : []);
+  };
+
+  const loadServerAuthStatus = async () => {
+    const status = await fetchApi("/admin/status", { method: "GET" });
+    state.serverAuthConfigured = Boolean(status?.configured);
+  };
+
+  const loginServerSession = async (password) => {
+    const payload = await fetchApi("/admin/login", {
+      method: "POST",
+      body: JSON.stringify({ password })
+    });
+    state.serverCsrfToken = String(payload?.csrfToken || "");
+    saveServerCsrfToken(state.serverCsrfToken);
+  };
+
+  const setupServerCredentials = async (password) => {
+    await fetchApi("/admin/setup", {
+      method: "POST",
+      body: JSON.stringify({ password })
+    });
+    state.serverAuthConfigured = true;
+  };
+
+  const logoutServerSession = async () => {
+    try {
+      await fetchApi("/admin/logout", { method: "POST", body: JSON.stringify({}) });
+    } catch (_error) {
+      // Ignore logout failures and clear local state anyway.
+    }
+    state.serverCsrfToken = "";
+    saveServerCsrfToken("");
   };
 
   const normalizeApplication = (application) => {
@@ -653,7 +711,8 @@
       stopSessionWatcher();
     };
 
-    const logout = (message) => {
+    const logout = async (message) => {
+      await logoutServerSession();
       clearSession();
       stopSessionWatcher();
       state.privateKey = null;
@@ -668,14 +727,14 @@
       stopSessionWatcher();
       state.activityHandler = () => {
         if (!touchSession()) {
-          logout("Сеанс завершён: требуется повторный вход.");
+          void logout("Сеанс завершён: требуется повторный вход.");
         }
       };
       window.addEventListener("pointerdown", state.activityHandler, { passive: true });
       window.addEventListener("keydown", state.activityHandler);
       state.sessionWatcher = setInterval(() => {
         if (!isSessionValid(loadSession())) {
-          logout("Сеанс завершён по таймауту.");
+          void logout("Сеанс завершён по таймауту.");
         }
       }, 15000);
     };
@@ -689,7 +748,8 @@
     };
 
     const refreshLoginMode = () => {
-      const needsSetup = !state.authBundle?.auth?.hash || !state.authBundle?.keys?.publicJwk;
+      const localNeedsSetup = !state.authBundle?.auth?.hash || !state.authBundle?.keys?.publicJwk;
+      const needsSetup = localNeedsSetup || !state.serverAuthConfigured;
       setupFields.hidden = !needsSetup;
       passwordConfirmInput.required = needsSetup;
       loginHint.textContent = needsSetup
@@ -706,9 +766,11 @@
       }
       state.publicKey = await window.ProItSecurity.importPublicKey(state.authBundle);
       state.privateKey = await window.ProItSecurity.unlockPrivateKey(state.authBundle, password);
+      await loginServerSession(password);
       await loadApplicationsFromApi();
     };
 
+    await loadServerAuthStatus();
     refreshLoginMode();
     closeAdmin();
 
@@ -722,7 +784,9 @@
       }
 
       const password = passwordInput.value;
-      const isFirstSetup = !state.authBundle?.auth?.hash || !state.authBundle?.keys?.publicJwk;
+      const localNeedsSetup = !state.authBundle?.auth?.hash || !state.authBundle?.keys?.publicJwk;
+      const serverNeedsSetup = !state.serverAuthConfigured;
+      const isFirstSetup = localNeedsSetup || serverNeedsSetup;
       submitButton.disabled = true;
 
       try {
@@ -736,9 +800,23 @@
             loginError.textContent = strength.errors.join(" ");
             return;
           }
-          state.authBundle = await window.ProItSecurity.createCredentialBundle(password);
-          saveAuthBundle(state.authBundle);
-          localStorage.removeItem(LEGACY_ADMIN_PIN_KEY);
+          if (!localNeedsSetup) {
+            const verified = await window.ProItSecurity.verifyCredentialBundle(state.authBundle, password);
+            if (!verified) {
+              const limiter = registerFailedAttempt();
+              const remaining = Math.max(0, Number(limiter.lockUntil) - Date.now());
+              loginError.textContent = `Неверный пароль. Повторите через ${Math.ceil(remaining / 1000)} сек.`;
+              return;
+            }
+          }
+          if (localNeedsSetup) {
+            state.authBundle = await window.ProItSecurity.createCredentialBundle(password);
+            saveAuthBundle(state.authBundle);
+            localStorage.removeItem(LEGACY_ADMIN_PIN_KEY);
+          }
+          if (serverNeedsSetup) {
+            await setupServerCredentials(password);
+          }
         } else {
           const verified = await window.ProItSecurity.verifyCredentialBundle(state.authBundle, password);
           if (!verified) {
@@ -747,16 +825,19 @@
             loginError.textContent = `Неверный пароль. Повторите через ${Math.ceil(remaining / 1000)} сек.`;
             return;
           }
-          resetRateLimit();
         }
 
         await unlockAdminContext(password);
+        resetRateLimit();
         saveSession(createSession());
         loginError.textContent = "";
         openAdmin();
         showToast(isFirstSetup ? "Безопасный профиль создан." : "Вход выполнен.");
         refreshLoginMode();
       } catch (error) {
+        if (!isFirstSetup) {
+          registerFailedAttempt();
+        }
         loginError.textContent = error?.message || "Не удалось выполнить вход.";
       } finally {
         submitButton.disabled = false;
@@ -764,7 +845,7 @@
     });
 
     byId("logoutBtn").addEventListener("click", () => {
-      logout("Сеанс завершён.");
+      void logout("Сеанс завершён.");
     });
   };
 
@@ -1021,6 +1102,22 @@
         submit.disabled = true;
       }
       try {
+        const verified = await window.ProItSecurity.verifyCredentialBundle(state.authBundle, currentPassword);
+        if (!verified) {
+          showToast("Неверный текущий пароль.");
+          return;
+        }
+
+        const serverResult = await fetchApi("/admin/change-password", {
+          method: "POST",
+          body: JSON.stringify({
+            currentPassword,
+            newPassword
+          })
+        });
+        state.serverCsrfToken = String(serverResult?.csrfToken || state.serverCsrfToken || "");
+        saveServerCsrfToken(state.serverCsrfToken);
+
         const updatedBundle = await window.ProItSecurity.rewrapCredentialBundle(
           state.authBundle,
           currentPassword,
@@ -1051,6 +1148,8 @@
         clearSession();
         state.privateKey = null;
         state.publicKey = null;
+        state.serverCsrfToken = "";
+        saveServerCsrfToken("");
         showToast("Параметры безопасности изменены в другой вкладке. Требуется повторный вход.");
         byId("adminApp").hidden = true;
         byId("adminLoginWrap").hidden = false;

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+
+# Local data and secrets
+proit_admin_data.db
+admin_credentials.json
+.flask_secret_key
