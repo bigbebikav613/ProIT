@@ -1,165 +1,282 @@
--- PRO IT Landing / Admin database schema
--- UTF-8
--- This file stores the admin data outside frontend JS.
-
+-- PRO IT database schema and seed. UTF-8.
 PRAGMA foreign_keys = ON;
 
 BEGIN TRANSACTION;
 
-CREATE TABLE IF NOT EXISTS site_meta (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  source TEXT,
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
+CREATE TABLE IF NOT EXISTS site_content (id INTEGER PRIMARY KEY CHECK (id = 1), content_json TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS admin_credentials (id INTEGER PRIMARY KEY CHECK (id = 1), password_hash TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS rate_limits (scope TEXT NOT NULL, key_hash TEXT NOT NULL, failures INTEGER NOT NULL DEFAULT 0, window_started INTEGER NOT NULL DEFAULT 0, locked_until INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL, PRIMARY KEY (scope, key_hash));
+CREATE TABLE IF NOT EXISTS applications (id TEXT PRIMARY KEY, created_at TEXT NOT NULL, processed INTEGER NOT NULL DEFAULT 0, data_encrypted TEXT NOT NULL);
 
-CREATE TABLE IF NOT EXISTS brand (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  school_name TEXT NOT NULL,
-  hero_title TEXT NOT NULL,
-  hero_subtitle TEXT,
-  tagline TEXT,
-  primary_cta TEXT,
-  secondary_cta TEXT
-);
-
-CREATE TABLE IF NOT EXISTS about (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  lead TEXT,
-  description TEXT
-);
-
-CREATE TABLE IF NOT EXISTS about_points (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  point_text TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS enrollment (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  age_info TEXT,
-  duration TEXT,
-  formats TEXT
-);
-
-CREATE TABLE IF NOT EXISTS achievements (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  title TEXT NOT NULL,
-  value TEXT NOT NULL,
-  description TEXT
-);
-
-CREATE TABLE IF NOT EXISTS teachers (
-  id TEXT PRIMARY KEY,
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  name TEXT NOT NULL,
-  role TEXT,
-  bio TEXT,
-  photo TEXT
-);
-
-CREATE TABLE IF NOT EXISTS courses (
-  id TEXT PRIMARY KEY,
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  title TEXT NOT NULL,
-  age_category TEXT,
-  short_description TEXT,
-  full_description TEXT,
-  duration TEXT,
-  teacher_id TEXT,
-  image TEXT,
-  FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS course_formats (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  course_id TEXT NOT NULL,
-  format TEXT NOT NULL,
-  FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS gallery (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  image TEXT,
-  title TEXT,
-  caption TEXT,
-  post_url TEXT
-);
-
-CREATE TABLE IF NOT EXISTS reviews (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  author TEXT,
-  role TEXT,
-  text TEXT
-);
-
-CREATE TABLE IF NOT EXISTS contacts (
-  id INTEGER PRIMARY KEY CHECK (id = 1),
-  address TEXT,
-  phone TEXT,
-  email TEXT,
-  vk TEXT,
-  telegram TEXT,
-  map_embed TEXT
-);
-
-CREATE TABLE IF NOT EXISTS applications (
-  id TEXT PRIMARY KEY,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  processed INTEGER NOT NULL DEFAULT 0,
-  source TEXT,
-  course_id TEXT,
-  course_title TEXT,
-  full_name TEXT,
-  phone TEXT,
-  format TEXT,
-  comment TEXT
-);
-
--- Seed (minimal)
-INSERT OR REPLACE INTO site_meta (id, source, updated_at)
-VALUES (1, 'vk.com/proittaganrog', datetime('now'));
-
-INSERT OR REPLACE INTO brand (id, school_name, hero_title, hero_subtitle, tagline, primary_cta, secondary_cta)
-VALUES (
-  1,
-  'Школа ПРО IT',
-  'Школа ПРО IT Таганрог',
-  'Проектная IT-школа на базе ИКТИБ ЮФУ для школьников от 12 лет и студентов СПО.',
-  'Создадим крутой IT-проект вместе!',
-  'Записаться на обучение',
-  'Смотреть курсы'
-);
-
-INSERT OR REPLACE INTO about (id, lead, description)
-VALUES (
-  1,
-  'Школа ПРО IT — это занятия по проектной деятельности для школьников и студентов СПО на базе ИКТИБ ЮФУ.',
-  'С 2021 года школа помогает начинающим войти в IT с нуля: участники изучают инструменты разработки, собираются в команды и доводят идеи до реальных работающих проектов.'
-);
-
-DELETE FROM about_points;
-INSERT INTO about_points (sort_order, point_text) VALUES
-  (10, 'Очный и онлайн форматы обучения'),
-  (20, 'Практика с наставниками из ИКТИБ ЮФУ'),
-  (30, 'Командные и индивидуальные проекты'),
-  (40, 'Подготовка к защитам, олимпиадам и хакатонам'),
-  (50, 'Сертификат по итогам обучения');
-
-INSERT OR REPLACE INTO enrollment (id, age_info, duration, formats)
-VALUES (1, 'Для школьников 12+ и студентов СПО', '6 месяцев', 'Очно и онлайн');
-
-INSERT OR REPLACE INTO contacts (id, address, phone, email, vk, telegram, map_embed)
-VALUES (
-  1,
-  'Таганрог, ул. Энгельса, 1, ИТА ЮФУ, корпус «Г»',
-  '+7 (964) 908-77-60',
-  'azykova@sfedu.ru',
-  'https://vk.com/proittaganrog',
-  'https://t.me/school_pro_it',
-  'https://www.google.com/maps?q=%D0%A2%D0%B0%D0%B3%D0%B0%D0%BD%D1%80%D0%BE%D0%B3%2C%20%D1%83%D0%BB%D0%B8%D1%86%D0%B0%20%D0%AD%D0%BD%D0%B3%D0%B5%D0%BB%D1%8C%D1%81%D0%B0%2C%201&output=embed'
-);
+INSERT OR IGNORE INTO site_content (id, content_json, updated_at) VALUES (1, '{
+  "meta": {
+    "source": "vk.com/proittaganrog",
+    "updatedAt": "2026-08-27T10:20:42.218Z"
+  },
+  "brand": {
+    "schoolName": "Школа ПРО IT",
+    "heroTitle": "Школа ПРО IT Таганрог",
+    "heroSubtitle": "Проектная IT-школа на базе ИКТИБ ЮФУ для школьников от 12 лет и студентов СПО.",
+    "tagline": "Создадим крутой IT-проект вместе!",
+    "primaryCta": "Записаться на обучение",
+    "secondaryCta": "Смотреть курсы"
+  },
+  "about": {
+    "lead": "Школа ПРО IT — это занятия по проектной деятельности для школьников и студентов СПО на базе ИКТИБ ЮФУ.",
+    "description": "С 2021 года школа помогает начинающим войти в IT с нуля: участники изучают инструменты разработки, собираются в команды и доводят идеи до реальных работающих проектов.",
+    "points": [
+      "Очный и онлайн форматы обучения",
+      "Практика с наставниками из ИКТИБ ЮФУ",
+      "Командные и индивидуальные проекты",
+      "Подготовка к защитам, олимпиадам и хакатонам",
+      "Сертификат по итогам обучения"
+    ]
+  },
+  "enrollment": {
+    "ageInfo": "Для школьников 12+ и студентов СПО",
+    "duration": "6 месяцев",
+    "formats": "Очно и онлайн"
+  },
+  "achievements": [
+    {
+      "title": "Работаем с 2021 года",
+      "value": "4+ года",
+      "description": "Стабильные запуски потоков и интенсивов в Таганроге."
+    },
+    {
+      "title": "Участники школы",
+      "value": "200+",
+      "description": "Сотни учеников прошли обучение и защитили свои проекты."
+    },
+    {
+      "title": "Портфолио в VK",
+      "value": "293+ фото",
+      "description": "Фотографии занятий, мастер-классов, защит и экскурсий."
+    },
+    {
+      "title": "События и кейсы",
+      "value": "55+ постов",
+      "description": "Публикации о хакатонах, ДОД, защите проектов и достижениях."
+    },
+    {
+      "title": "Хакатоны",
+      "value": "Победы",
+      "description": "Преподаватели и ученики занимают призовые места в Cyber Garden и IT-Будущее."
+    },
+    {
+      "title": "Защиты проектов",
+      "value": "Регулярно",
+      "description": "Итоговые защиты с презентацией собственных IT-продуктов."
+    }
+  ],
+  "teachers": [
+    {
+      "id": "zykova",
+      "name": "Алёна Владимировна Зыкова",
+      "role": "Руководитель Школы ПРО IT",
+      "bio": "Координирует образовательную программу и запуск потоков.",
+      "photo": ""
+    },
+    {
+      "id": "frolov",
+      "name": "Виталий Витальевич Фролов",
+      "role": "Преподаватель web-разработки",
+      "bio": "HTML/CSS/JS, React, командная разработка проектов.",
+      "photo": ""
+    },
+    {
+      "id": "surmeneva",
+      "name": "Ирина Андреевна Сурменева",
+      "role": "Преподаватель цифрового дизайна",
+      "bio": "Figma, UI/UX и визуальная упаковка цифровых продуктов.",
+      "photo": ""
+    },
+    {
+      "id": "lavrov",
+      "name": "Даниил Эдуардович Лавров",
+      "role": "Преподаватель направления ИИ",
+      "bio": "Python, нейросети и прикладные AI-проекты.",
+      "photo": ""
+    },
+    {
+      "id": "odintsov",
+      "name": "Дмитрий Максимович Одинцов",
+      "role": "Преподаватель направления ИИ",
+      "bio": "Практика по ML и проектной работе в командах.",
+      "photo": ""
+    },
+    {
+      "id": "placeholder-go",
+      "name": "Преподаватель GO (назначается)",
+      "role": "Направление Go",
+      "bio": "Заполните имя и фото в админ-панели.",
+      "photo": ""
+    },
+    {
+      "id": "placeholder-mobile",
+      "name": "Преподаватель Mobile (назначается)",
+      "role": "Мобильная разработка",
+      "bio": "Заполните имя и фото в админ-панели.",
+      "photo": ""
+    }
+  ],
+  "courses": [
+    {
+      "id": "web",
+      "title": "web-разработка",
+      "ageCategory": "12+",
+      "shortDescription": "Создание современных сайтов и web-приложений.",
+      "fullDescription": "Курс по фронтенду и основам командной разработки. Ученики осваивают HTML, CSS, JavaScript, React, проектируют интерфейсы и доводят свои продукты до рабочей версии.",
+      "duration": "6 месяцев",
+      "formats": [
+        "очно"
+      ],
+      "teacherId": "frolov",
+      "image": "",
+      "price": "20 000 ₽"
+    },
+    {
+      "id": "python",
+      "title": "python",
+      "ageCategory": "12+",
+      "shortDescription": "Универсальный старт в программировании на Python.",
+      "fullDescription": "От базового синтаксиса до решения прикладных задач: работа с данными, алгоритмы, автоматизация и подготовка к участию в олимпиадах и хакатонах.",
+      "duration": "6 месяцев",
+      "formats": [
+        "очно"
+      ],
+      "teacherId": "lavrov",
+      "image": "",
+      "price": "20 000 ₽"
+    },
+    {
+      "id": "go",
+      "title": "Программирование на GO",
+      "ageCategory": "13+",
+      "shortDescription": "Системный подход и разработка быстрых серверных сервисов.",
+      "fullDescription": "Практический курс по Go: синтаксис, структуры данных, конкурентность, разработка API и командная проектная работа для понимания backend-подходов.",
+      "duration": "6 месяцев",
+      "formats": [
+        "очно"
+      ],
+      "teacherId": "placeholder-go",
+      "image": "",
+      "price": "20 000 ₽"
+    },
+    {
+      "id": "mobile",
+      "title": "мобильная разработка",
+      "ageCategory": "13+",
+      "shortDescription": "Проектирование и создание мобильных приложений.",
+      "fullDescription": "Ученики изучают архитектуру мобильных приложений, интерфейсы, логику экранов и собирают MVP-приложения с защитой в конце обучения.",
+      "duration": "6 месяцев",
+      "formats": [
+        "очно",
+        "онлайн"
+      ],
+      "teacherId": "placeholder-mobile",
+      "image": "",
+      "price": "20 000 ₽"
+    },
+    {
+      "id": "design",
+      "title": "цифровой дизайн",
+      "ageCategory": "12+",
+      "shortDescription": "UX/UI-дизайн, Figma и визуальная коммуникация.",
+      "fullDescription": "На курсе формируется понимание пользовательского опыта, сеток, типографики, прототипирования и презентации дизайн-решений для реальных IT-проектов.",
+      "duration": "6 месяцев",
+      "formats": [
+        "очно",
+        "онлайн"
+      ],
+      "teacherId": "surmeneva",
+      "image": "",
+      "price": "20 000 ₽"
+    },
+    {
+      "id": "ai",
+      "title": "искуственный интеллект",
+      "ageCategory": "13+",
+      "shortDescription": "Нейросети, компьютерное зрение и AI-проекты.",
+      "fullDescription": "Участники проходят путь от Python-базы к нейросетевым моделям, обучению на данных и созданию прикладных решений с ИИ для защиты итоговых проектов.",
+      "duration": "6 месяцев",
+      "formats": [
+        "очно",
+        "онлайн"
+      ],
+      "teacherId": "odintsov",
+      "image": "",
+      "price": "20 000 ₽"
+    }
+  ],
+  "gallery": [
+    {
+      "image": "",
+      "title": "Защита проектов",
+      "caption": "Итоговая презентация команд",
+      "postUrl": "https://vk.com/wall-225264273_71"
+    },
+    {
+      "image": "",
+      "title": "Командная работа",
+      "caption": "Выступления и обратная связь",
+      "postUrl": "https://vk.com/wall-225264273_73"
+    },
+    {
+      "image": "",
+      "title": "Старт интенсива",
+      "caption": "Первое занятие потока",
+      "postUrl": "https://vk.com/wall-225264273_85"
+    },
+    {
+      "image": "",
+      "title": "Финальные защиты",
+      "caption": "Проекты учеников летнего интенсива",
+      "postUrl": "https://vk.com/wall-225264273_93"
+    },
+    {
+      "image": "",
+      "title": "Набор в школу",
+      "caption": "Новый поток и направления",
+      "postUrl": "https://vk.com/wall-225264273_98"
+    },
+    {
+      "image": "",
+      "title": "Хакатон Cyber Garden",
+      "caption": "Победа преподавателей школы",
+      "postUrl": "https://vk.com/wall-225264273_109"
+    }
+  ],
+  "reviews": [
+    {
+      "author": "Ученик, цифровой дизайн",
+      "role": "Отзыв после первого занятия",
+      "text": "Первое занятие очень понравилось: разобрали Figma, нашли идеи для проектов и начали делать собственные макеты."
+    },
+    {
+      "author": "Ученик, web-разработка",
+      "role": "Отзыв после старта курса",
+      "text": "Сделали рабочую страницу на HTML/CSS/JS. Было непросто, но преподаватель объяснял всё по шагам и помогал каждому."
+    },
+    {
+      "author": "Ученик, искусственный интеллект",
+      "role": "Отзыв о занятиях",
+      "text": "Понравилась атмосфера и подача материала: начали с Python, а дальше перешли к нейросетям и идеям итогового проекта."
+    },
+    {
+      "author": "Родитель участника",
+      "role": "Общее впечатление",
+      "text": "Ребёнок ходит с интересом, рассказывает о команде и своих задачах. Видно практический результат уже в процессе обучения."
+    }
+  ],
+  "contacts": {
+    "address": "Таганрог, ул. Энгельса, 1, ИТА ЮФУ, корпус «Г»",
+    "phone": "+7 (964) 908-77-60",
+    "email": "azykova@sfedu.ru",
+    "vk": "https://vk.com/proittaganrog",
+    "telegram": "https://t.me/school_pro_it",
+    "mapEmbed": "https://www.google.com/maps?q=%D0%A2%D0%B0%D0%B3%D0%B0%D0%BD%D1%80%D0%BE%D0%B3%2C%20%D1%83%D0%BB%D0%B8%D1%86%D0%B0%20%D0%AD%D0%BD%D0%B3%D0%B5%D0%BB%D1%8C%D1%81%D0%B0%2C%201&output=embed"
+  }
+}', datetime('now'));
 
 COMMIT;

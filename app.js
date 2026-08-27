@@ -1,40 +1,9 @@
 ﻿(() => {
-  const STORAGE_CONTENT = "proit_landing_content_v1";
-  const STORAGE_APPLICATIONS_LEGACY = "proit_landing_applications_v1";
-  const STORAGE_APPLICATIONS_SECURE = "proit_landing_applications_secure_v2";
-  const STORAGE_ADMIN_AUTH = "proit_landing_admin_auth_v2";
-  const STORAGE_GALLERY_PREVIEWS = "proit_landing_gallery_previews_v1";
   const STORAGE_THEME = "proit_landing_theme_v1";
-  const API_BASE = "/api";
-  const APPLICATION_RETENTION_DAYS = 180;
+  const API_BASE = String(window.PRO_IT_API_BASE || "/api").replace(/\/$/, "");
   const PRIVACY_POLICY_VERSION = "2026-04-14";
 
   const byId = (id) => document.getElementById(id);
-
-  const deepClone = (value) => JSON.parse(JSON.stringify(value));
-
-  const mergeWithDefaults = (defaults, saved) => {
-    if (Array.isArray(defaults)) {
-      return Array.isArray(saved) ? saved : deepClone(defaults);
-    }
-
-    if (defaults && typeof defaults === "object") {
-      const result = {};
-      for (const key of Object.keys(defaults)) {
-        result[key] = mergeWithDefaults(defaults[key], saved ? saved[key] : undefined);
-      }
-      if (saved && typeof saved === "object") {
-        for (const key of Object.keys(saved)) {
-          if (!(key in result)) {
-            result[key] = saved[key];
-          }
-        }
-      }
-      return result;
-    }
-
-    return saved !== undefined ? saved : defaults;
-  };
 
   const escapeHtml = (value) => String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -48,8 +17,6 @@
     .trim();
 
   const sanitizePhone = (value) => String(value ?? "").replace(/[^\d+]/g, "");
-
-  const hasMojibake = (value) => /(?:Р[\u0400-\u04FF]|С[\u0400-\u04FF]){4,}/.test(String(value ?? ""));
 
   const fallbackTeacherImage = (name) => {
     const initials = String(name ?? "PR")
@@ -73,10 +40,9 @@
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   };
 
-  const uid = (prefix = "id") => `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
-
   const fetchApi = async (path, options = {}) => {
     const response = await fetch(`${API_BASE}${path}`, {
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         ...(options.headers || {})
@@ -101,374 +67,27 @@
     return response.json();
   };
 
-  const buildDefaultData = () => {
-    if (typeof window.PRO_IT_BUILD_DEFAULT_DATA === "function") {
-      return window.PRO_IT_BUILD_DEFAULT_DATA();
-    }
-    return ({
-    meta: {
-      source: "vk.com/proittaganrog",
-      updatedAt: new Date().toISOString()
-    },
-    brand: {
-      schoolName: "Школа ПРО IT",
-      heroTitle: "Школа ПРО IT Таганрог",
-      heroSubtitle: "Проектная IT-школа на базе ИКТИБ ЮФУ для школьников от 12 лет и студентов СПО.",
-      tagline: "Создадим крутой IT-проект вместе!",
-      primaryCta: "Записаться на обучение",
-      secondaryCta: "Смотреть курсы"
-    },
-    about: {
-      lead: "Школа ПРО IT — это занятия по проектной деятельности для школьников и студентов СПО на базе ИКТИБ ЮФУ.",
-      description: "С 2021 года школа помогает начинающим войти в IT с нуля: участники изучают инструменты разработки, собираются в команды и доводят идеи до реальных работающих проектов.",
-      points: [
-        "Очный и онлайн форматы обучения",
-        "Практика с наставниками из ИКТИБ ЮФУ",
-        "Командные и индивидуальные проекты",
-        "Подготовка к защитам, олимпиадам и хакатонам",
-        "Сертификат по итогам обучения"
-      ]
-    },
-    enrollment: {
-      ageInfo: "Для школьников 12+ и студентов СПО",
-      duration: "6 месяцев",
-      formats: "Очно и онлайн"
-    },
-    achievements: [
-      {
-        title: "Работаем с 2021 года",
-        value: "4+ года",
-        description: "Стабильные запуски потоков и интенсивов в Таганроге."
-      },
-      {
-        title: "Участники школы",
-        value: "200+",
-        description: "Сотни учеников прошли обучение и защитили свои проекты."
-      },
-      {
-        title: "Хакатоны",
-        value: "Победы",
-        description: "Преподаватели и ученики занимают призовые места в Cyber Garden и IT-Будущее."
-      },
-      {
-        title: "Защиты проектов",
-        value: "Регулярно",
-        description: "Итоговые защиты с презентацией собственных IT-продуктов."
-      }
-    ],
-    teachers: [
-      {
-        id: "zykova",
-        name: "Алёна Владимировна Зыкова",
-        role: "Руководитель Школы ПРО IT",
-        bio: "Координирует образовательную программу и запуск потоков.",
-        photo: ""
-      },
-      {
-        id: "frolov",
-        name: "Виталий Витальевич Фролов",
-        role: "Преподаватель web-разработки",
-        bio: "HTML/CSS/JS, React, командная разработка проектов.",
-        photo: ""
-      },
-      {
-        id: "surmeneva",
-        name: "Ирина Андреевна Сурменева",
-        role: "Преподаватель цифрового дизайна",
-        bio: "Figma, UI/UX и визуальная упаковка цифровых продуктов.",
-        photo: ""
-      },
-      {
-        id: "lavrov",
-        name: "Даниил Эдуардович Лавров",
-        role: "Преподаватель направления ИИ",
-        bio: "Python, нейросети и прикладные AI-проекты.",
-        photo: ""
-      },
-      {
-        id: "odintsov",
-        name: "Дмитрий Максимович Одинцов",
-        role: "Преподаватель направления ИИ",
-        bio: "Практика по ML и проектной работе в командах.",
-        photo: ""
-      },
-      {
-        id: "placeholder-go",
-        name: "Преподаватель GO (назначается)",
-        role: "Направление Go",
-        bio: "Заполните имя и фото в админ-панели.",
-        photo: ""
-      },
-      {
-        id: "placeholder-mobile",
-        name: "Преподаватель Mobile (назначается)",
-        role: "Мобильная разработка",
-        bio: "Заполните имя и фото в админ-панели.",
-        photo: ""
-      }
-    ],
-    courses: [
-      {
-        id: "web",
-        title: "web-разработка",
-        ageCategory: "12+",
-        shortDescription: "Создание современных сайтов и web-приложений.",
-        fullDescription: "Курс по фронтенду и основам командной разработки. Ученики осваивают HTML, CSS, JavaScript, React, проектируют интерфейсы и доводят свои продукты до рабочей версии.",
-        duration: "6 месяцев",
-        formats: ["очно"],
-        teacherId: "frolov",
-        image: "",
-        price: "20 000 ₽"
-      },
-      {
-        id: "python",
-        title: "python",
-        ageCategory: "12+",
-        shortDescription: "Универсальный старт в программировании на Python.",
-        fullDescription: "От базового синтаксиса до решения прикладных задач: работа с данными, алгоритмы, автоматизация и подготовка к участию в олимпиадах и хакатонах.",
-        duration: "6 месяцев",
-        formats: ["очно"],
-        teacherId: "lavrov",
-        image: "",
-        price: "20 000 ₽"
-      },
-      {
-        id: "go",
-        title: "Программирование на GO",
-        ageCategory: "13+",
-        shortDescription: "Системный подход и разработка быстрых серверных сервисов.",
-        fullDescription: "Практический курс по Go: синтаксис, структуры данных, конкурентность, разработка API и командная проектная работа для понимания backend-подходов.",
-        duration: "6 месяцев",
-        formats: ["очно"],
-        teacherId: "placeholder-go",
-        image: "",
-        price: "20 000 ₽"
-      },
-      {
-        id: "mobile",
-        title: "мобильная разработка",
-        ageCategory: "13+",
-        shortDescription: "Проектирование и создание мобильных приложений.",
-        fullDescription: "Ученики изучают архитектуру мобильных приложений, интерфейсы, логику экранов и собирают MVP-приложения с защитой в конце обучения.",
-        duration: "6 месяцев",
-        formats: ["очно", "онлайн"],
-        teacherId: "placeholder-mobile",
-        image: "",
-        price: "20 000 ₽"
-      },
-      {
-        id: "design",
-        title: "цифровой дизайн",
-        ageCategory: "12+",
-        shortDescription: "UX/UI-дизайн, Figma и визуальная коммуникация.",
-        fullDescription: "На курсе формируется понимание пользовательского опыта, сеток, типографики, прототипирования и презентации дизайн-решений для реальных IT-проектов.",
-        duration: "6 месяцев",
-        formats: ["очно", "онлайн"],
-        teacherId: "surmeneva",
-        image: "",
-        price: "20 000 ₽"
-      },
-      {
-        id: "ai",
-        title: "искуственный интеллект",
-        ageCategory: "13+",
-        shortDescription: "Нейросети, компьютерное зрение и AI-проекты.",
-        fullDescription: "Участники проходят путь от Python-базы к нейросетевым моделям, обучению на данных и созданию прикладных решений с ИИ для защиты итоговых проектов.",
-        duration: "6 месяцев",
-        formats: ["очно", "онлайн"],
-        teacherId: "odintsov",
-        image: "",
-        price: "20 000 ₽"
-      }
-    ],
-    gallery: [
-      {
-        image: "",
-        title: "Защита проектов",
-        caption: "Итоговая презентация команд",
-        postUrl: "https://vk.com/wall-225264273_71"
-      },
-      {
-        image: "",
-        title: "Командная работа",
-        caption: "Выступления и обратная связь",
-        postUrl: "https://vk.com/wall-225264273_73"
-      },
-      {
-        image: "",
-        title: "Старт интенсива",
-        caption: "Первое занятие потока",
-        postUrl: "https://vk.com/wall-225264273_85"
-      },
-      {
-        image: "",
-        title: "Финальные защиты",
-        caption: "Проекты учеников летнего интенсива",
-        postUrl: "https://vk.com/wall-225264273_93"
-      },
-      {
-        image: "",
-        title: "Набор в школу",
-        caption: "Новый поток и направления",
-        postUrl: "https://vk.com/wall-225264273_98"
-      },
-      {
-        image: "",
-        title: "Хакатон Cyber Garden",
-        caption: "Победа преподавателей школы",
-        postUrl: "https://vk.com/wall-225264273_109"
-      }
-    ],
-    reviews: [
-      {
-        author: "Ученик, цифровой дизайн",
-        role: "Отзыв после первого занятия",
-        text: "Первое занятие очень понравилось: разобрали Figma, нашли идеи для проектов и начали делать собственные макеты."
-      },
-      {
-        author: "Ученик, web-разработка",
-        role: "Отзыв после старта курса",
-        text: "Сделали рабочую страницу на HTML/CSS/JS. Было непросто, но преподаватель объяснял всё по шагам и помогал каждому."
-      },
-      {
-        author: "Ученик, искусственный интеллект",
-        role: "Отзыв о занятиях",
-        text: "Понравилась атмосфера и подача материала: начали с Python, а дальше перешли к нейросетям и идеям итогового проекта."
-      },
-      {
-        author: "Родитель участника",
-        role: "Общее впечатление",
-        text: "Ребёнок ходит с интересом, рассказывает о команде и своих задачах. Видно практический результат уже в процессе обучения."
-      }
-    ],
-    contacts: {
-      address: "Таганрог, ул. Энгельса, 1, ИТА ЮФУ, корпус «Г»",
-      phone: "+7 (964) 908-77-60",
-      email: "azykova@sfedu.ru",
-      vk: "https://vk.com/proittaganrog",
-      telegram: "https://t.me/school_pro_it",
-      mapEmbed: "https://www.google.com/maps?q=%D0%A2%D0%B0%D0%B3%D0%B0%D0%BD%D1%80%D0%BE%D0%B3%2C%20%D1%83%D0%BB%D0%B8%D1%86%D0%B0%20%D0%AD%D0%BD%D0%B3%D0%B5%D0%BB%D1%8C%D1%81%D0%B0%2C%201&output=embed"
-    }
+  const emptyData = () => ({
+    meta: { source: "", updatedAt: "" },
+    brand: { schoolName: "", heroTitle: "", heroSubtitle: "", tagline: "", primaryCta: "", secondaryCta: "" },
+    about: { lead: "", description: "", points: [] },
+    enrollment: { ageInfo: "", duration: "", formats: "" },
+    achievements: [],
+    teachers: [],
+    courses: [],
+    gallery: [],
+    reviews: [],
+    contacts: { address: "", phone: "", email: "", vk: "", telegram: "", mapEmbed: "" }
   });
-  };
 
-  const loadSiteData = () => {
-    const defaults = buildDefaultData();
-    try {
-      const raw = localStorage.getItem(STORAGE_CONTENT);
-      if (!raw) {
-        localStorage.setItem(STORAGE_CONTENT, JSON.stringify(defaults));
-        return defaults;
-      }
-      if (hasMojibake(raw)) {
-        localStorage.setItem(STORAGE_CONTENT, JSON.stringify(defaults));
-        return defaults;
-      }
-      const saved = JSON.parse(raw);
-      return mergeWithDefaults(defaults, saved);
-    } catch (_error) {
-      return defaults;
-    }
-  };
-
-  const saveSiteData = (data) => {
-    localStorage.setItem(STORAGE_CONTENT, JSON.stringify(data));
-  };
-
-  const loadLegacyApplications = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_APPLICATIONS_LEGACY);
-      if (!raw) {
-        return [];
-      }
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (_error) {
-      return [];
-    }
-  };
-
-  const loadSecureApplications = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_APPLICATIONS_SECURE);
-      if (!raw) {
-        return [];
-      }
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (_error) {
-      return [];
-    }
-  };
-
-  const saveSecureApplications = (list) => {
-    localStorage.setItem(STORAGE_APPLICATIONS_SECURE, JSON.stringify(list));
-  };
-
-  const loadAuthBundle = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_ADMIN_AUTH);
-      return raw ? JSON.parse(raw) : null;
-    } catch (_error) {
-      return null;
-    }
-  };
-
-  const isStrongCryptoReady = () => Boolean(window.ProItSecurity?.supportsStrongCrypto);
-
-  const cutoffTimestamp = () => Date.now() - (APPLICATION_RETENTION_DAYS * 24 * 60 * 60 * 1000);
-
-  const pruneEncryptedApplications = (entries) => {
-    const cutoff = cutoffTimestamp();
-    return entries.filter((entry) => {
-      const createdAt = Date.parse(String(entry?.meta?.createdAt || ""));
-      if (!Number.isFinite(createdAt)) {
-        return true;
-      }
-      return createdAt >= cutoff;
-    });
-  };
-
-  let cachedPublicKey = null;
-  let cachedPublicKeyFingerprint = "";
-
-  const getPublicKey = async () => {
-    if (!isStrongCryptoReady()) {
-      throw new Error("В браузере недоступны современные криптографические функции.");
-    }
-    const bundle = loadAuthBundle();
-    if (!bundle) {
-      throw new Error("Приём заявок временно недоступен: администратор ещё не завершил настройку безопасности.");
-    }
-    const fingerprint = JSON.stringify(bundle?.keys?.publicJwk || {});
-    if (cachedPublicKey && fingerprint === cachedPublicKeyFingerprint) {
-      return cachedPublicKey;
-    }
-    cachedPublicKey = await window.ProItSecurity.importPublicKey(bundle);
-    cachedPublicKeyFingerprint = fingerprint;
-    return cachedPublicKey;
-  };
-
-  const loadGalleryPreviews = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_GALLERY_PREVIEWS);
-      if (!raw) {
-        return {};
-      }
-      const parsed = JSON.parse(raw);
-      return parsed && typeof parsed === "object" ? parsed : {};
-    } catch (_error) {
-      return {};
-    }
-  };
-
-  const saveGalleryPreviews = (previews) => {
-    localStorage.setItem(STORAGE_GALLERY_PREVIEWS, JSON.stringify(previews));
+  const loadSiteData = async () => {
+    const data = await fetchApi("/content");
+    return data && typeof data === "object" ? data : emptyData();
   };
 
   const state = {
-    data: loadSiteData(),
-    galleryPreviews: loadGalleryPreviews(),
+    data: emptyData(),
+    galleryPreviews: {},
     galleryHydrationInFlight: false,
     lastCourseCardTrigger: null,
     toastTimer: null
@@ -538,24 +157,21 @@
     const noEmbedUrl = `https://noembed.com/embed?url=${encodeURIComponent(normalizedPostUrl)}`;
 
     const vkData = await fetchJsonWithTimeout(vkOEmbedUrl);
-    const vkThumb = normalizeImage(vkData?.thumbnail_url || "");
-    if (vkThumb) {
-      state.galleryPreviews[normalizedPostUrl] = vkThumb;
-      saveGalleryPreviews(state.galleryPreviews);
-      return vkThumb;
-    }
+      const vkThumb = normalizeImage(vkData?.thumbnail_url || "");
+      if (vkThumb) {
+        state.galleryPreviews[normalizedPostUrl] = vkThumb;
+        return vkThumb;
+      }
 
     const noEmbedData = await fetchJsonWithTimeout(noEmbedUrl);
-    const noEmbedThumb = normalizeImage(noEmbedData?.thumbnail_url || "");
-    if (noEmbedThumb) {
-      state.galleryPreviews[normalizedPostUrl] = noEmbedThumb;
-      saveGalleryPreviews(state.galleryPreviews);
-      return noEmbedThumb;
-    }
+      const noEmbedThumb = normalizeImage(noEmbedData?.thumbnail_url || "");
+      if (noEmbedThumb) {
+        state.galleryPreviews[normalizedPostUrl] = noEmbedThumb;
+        return noEmbedThumb;
+      }
 
-    state.galleryPreviews[normalizedPostUrl] = null;
-    saveGalleryPreviews(state.galleryPreviews);
-    return "";
+      state.galleryPreviews[normalizedPostUrl] = null;
+      return "";
   };
 
   const hydrateGalleryPreviews = async () => {
@@ -694,7 +310,7 @@
       const photo = normalizeImage(teacher.photo);
       const fallback = fallbackTeacherImage(teacher.name);
       const media = photo
-        ? `<img class="teacher-photo" src="${escapeHtml(photo)}" alt="${escapeHtml(teacher.name)}" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(fallback)}';">`
+        ? `<img class="teacher-photo" src="${escapeHtml(photo)}" data-fallback="${escapeHtml(fallback)}" alt="${escapeHtml(teacher.name)}" loading="lazy">`
         : `<div class="teacher-fallback teacher-photo-slot">${escapeHtml((teacher.name || "ПР").split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase() || "ПР")}</div>`;
 
       return `
@@ -881,21 +497,10 @@
   };
 
   const addApplication = async (application) => {
-    const entry = {
-      id: uid("app"),
-      createdAt: new Date().toISOString(),
-      processed: false,
-      ...application
-    };
     await fetchApi("/applications", {
       method: "POST",
-      body: JSON.stringify(entry)
+      body: JSON.stringify(application)
     });
-  };
-
-  const migrateLegacyApplications = async () => {
-    // Applications are stored in SQL via API now; legacy localStorage migration is disabled.
-    return Promise.resolve();
   };
 
   const handleMainEnrollmentSubmit = async (event) => {
@@ -923,6 +528,7 @@
         phone: String(formData.get("phone") || "").trim(),
         format: String(formData.get("format") || "").trim(),
         comment: String(formData.get("comment") || "").trim(),
+        website: String(formData.get("website") || "").trim(),
         consentPolicyVersion: PRIVACY_POLICY_VERSION,
         consentAcceptedAt: new Date().toISOString()
       });
@@ -959,6 +565,7 @@
         phone: String(formData.get("phone") || "").trim(),
         format: String(formData.get("format") || "").trim(),
         comment: String(formData.get("comment") || "").trim(),
+        website: String(formData.get("website") || "").trim(),
         consentPolicyVersion: PRIVACY_POLICY_VERSION,
         consentAcceptedAt: new Date().toISOString()
       });
@@ -1040,7 +647,13 @@
     renderContacts();
     setupCarouselControls();
     activateReveal();
-    saveSiteData(state.data);
+    document.querySelectorAll("img[data-fallback]").forEach((image) => {
+      image.addEventListener("error", () => {
+        const fallback = image.dataset.fallback;
+        image.removeAttribute("data-fallback");
+        image.src = fallback;
+      }, { once: true });
+    });
   };
 
   const bindEvents = () => {
@@ -1122,14 +735,6 @@
     });
 
     window.addEventListener("storage", (event) => {
-      if (event.key === STORAGE_CONTENT) {
-        state.data = loadSiteData();
-        renderAll();
-      }
-      if (event.key === STORAGE_ADMIN_AUTH) {
-        cachedPublicKey = null;
-        cachedPublicKeyFingerprint = "";
-      }
       if (event.key === STORAGE_THEME) {
         applyTheme(event.newValue === "dark" ? "dark" : "light");
       }
@@ -1138,13 +743,13 @@
 
   const init = async () => {
     initTheme();
-    renderAll();
     bindEvents();
     try {
-      await migrateLegacyApplications();
+      state.data = await loadSiteData();
     } catch (_error) {
-      // Keep page functional even if secure migration cannot be completed now.
+      showToast("Не удалось загрузить данные сайта.");
     }
+    renderAll();
   };
 
   void init();

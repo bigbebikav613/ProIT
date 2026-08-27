@@ -6,8 +6,6 @@
   <title>Школа ПРО IT | ИКТИБ ЮФУ</title>
   <meta name="description" content="Одностраничный сайт Школы ПРО IT: направления, преподаватели, достижения, отзывы и запись на обучение.">
   <link rel="stylesheet" href="styles.css">
-  <script defer src="security.js"></script>
-  <script defer src="shared-data.js"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
@@ -186,6 +184,7 @@
             <input type="checkbox" name="privacyConsent" required>
             <span>Даю согласие на обработку персональных данных в соответствии с <a href="privacy.html" target="_blank" rel="noopener">Политикой обработки ПДн</a>.</span>
           </label>
+          <label class="honeypot" aria-hidden="true">Сайт<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
           <button class="btn btn-solid" type="submit">Отправить заявку</button>
         </form>
       </div>
@@ -287,6 +286,7 @@
               <input type="checkbox" name="privacyConsent" required>
               <span>Даю согласие на обработку персональных данных в соответствии с <a href="privacy.html" target="_blank" rel="noopener">Политикой обработки ПДн</a>.</span>
             </label>
+            <label class="honeypot" aria-hidden="true">Сайт<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
             <button class="btn btn-solid" type="submit">Записаться на курс</button>
           </form>
         </div>
