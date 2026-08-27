@@ -691,6 +691,7 @@
       }
       const isOpen = navLinks.classList.toggle("open");
       navToggle.setAttribute("aria-expanded", String(isOpen));
+      navToggle.setAttribute("aria-label", isOpen ? "Закрыть меню" : "Открыть меню");
     });
 
     navLinks?.querySelectorAll("a").forEach((link) => {
@@ -700,13 +701,15 @@
         }
         navLinks.classList.remove("open");
         navToggle?.setAttribute("aria-expanded", "false");
+        navToggle?.setAttribute("aria-label", "Открыть меню");
       });
     });
 
     window.addEventListener("resize", () => {
-      if (window.innerWidth > 760 && navLinks?.classList.contains("open")) {
+      if (window.innerWidth > 900 && navLinks?.classList.contains("open")) {
         navLinks.classList.remove("open");
         navToggle?.setAttribute("aria-expanded", "false");
+        navToggle?.setAttribute("aria-label", "Открыть меню");
       }
     });
 
