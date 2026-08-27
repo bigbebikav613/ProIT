@@ -81,8 +81,17 @@
   });
 
   const loadSiteData = async () => {
-    const data = await fetchApi("/content");
-    return data && typeof data === "object" ? data : emptyData();
+    try {
+      const data = await fetchApi("/content");
+      return data && typeof data === "object" ? data : emptyData();
+    } catch (error) {
+      const response = await fetch("content.json", { cache: "no-store" });
+      if (!response.ok) {
+        throw error;
+      }
+      const fallback = await response.json();
+      return fallback && typeof fallback === "object" ? fallback : emptyData();
+    }
   };
 
   const state = {
@@ -706,7 +715,7 @@
     });
 
     window.addEventListener("resize", () => {
-      if (window.innerWidth > 900 && navLinks?.classList.contains("open")) {
+      if (window.innerWidth > 1080 && navLinks?.classList.contains("open")) {
         navLinks.classList.remove("open");
         navToggle?.setAttribute("aria-expanded", "false");
         navToggle?.setAttribute("aria-label", "Открыть меню");
