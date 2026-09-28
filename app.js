@@ -297,7 +297,7 @@
         <span class="course-index">${String(index + 1).padStart(2, "0")}</span>
         <h3>${escapeHtml(course.title)}</h3>
         <p class="course-short">${escapeHtml(course.shortDescription)}</p>
-        <div class="chip-line">
+        <div class="course-details" aria-label="Дополнительная информация о курсе">
           <span class="chip">${escapeHtml(course.ageCategory)}</span>
           <span class="chip">${escapeHtml((course.formats || []).join(", "))}</span>
         </div>

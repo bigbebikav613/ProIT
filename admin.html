@@ -39,20 +39,20 @@
 
     <div class="admin-layout">
       <aside class="admin-sidebar">
-        <button type="button" class="admin-tab-btn active" data-tab="applications">Заявки</button>
-        <button type="button" class="admin-tab-btn" data-tab="content">Контент</button>
-        <button type="button" class="admin-tab-btn" data-tab="achievements">Достижения</button>
-        <button type="button" class="admin-tab-btn" data-tab="courses">Курсы</button>
-        <button type="button" class="admin-tab-btn" data-tab="teachers">Преподаватели</button>
-        <button type="button" class="admin-tab-btn" data-tab="gallery">Галерея</button>
-        <button type="button" class="admin-tab-btn" data-tab="reviews">Отзывы</button>
-        <button type="button" class="admin-tab-btn" data-tab="settings">Настройки</button>
+        <button type="button" class="admin-tab-btn active" data-tab="applications">Заявки на обучение</button>
+        <button type="button" class="admin-tab-btn" data-tab="content">Основная информация</button>
+        <button type="button" class="admin-tab-btn" data-tab="achievements">Достижения школы</button>
+        <button type="button" class="admin-tab-btn" data-tab="courses">Направления и курсы</button>
+        <button type="button" class="admin-tab-btn" data-tab="teachers">Команда преподавателей</button>
+        <button type="button" class="admin-tab-btn" data-tab="gallery">Фотогалерея</button>
+        <button type="button" class="admin-tab-btn" data-tab="reviews">Отзывы учеников</button>
+        <button type="button" class="admin-tab-btn" data-tab="settings">Безопасность и настройки</button>
       </aside>
 
       <main class="admin-main">
         <section class="admin-tab-panel active" id="tab-applications">
           <div class="admin-panel-head">
-            <h2>Таблица с записями</h2>
+            <h2>Заявки на обучение</h2>
             <div class="admin-inline-actions">
                <button class="btn btn-ghost btn-sm" id="exportApplicationsBtn" type="button">Экспорт CSV</button>
               <button class="btn btn-danger btn-sm" id="clearApplicationsBtn" type="button">Очистить все</button>
@@ -78,21 +78,21 @@
         </section>
 
         <section class="admin-tab-panel" id="tab-content">
-          <h2>Изменение основного контента</h2>
+          <h2>Основная информация о школе</h2>
           <form class="admin-form" id="contentForm">
             <div class="admin-form-grid">
               <label>Название школы <input name="schoolName" type="text" required></label>
-              <label>Подзаголовок в hero <input name="heroSubtitle" type="text"></label>
-              <label>Заголовок hero <input name="heroTitle" type="text" required></label>
-              <label>Слоган/статус <input name="tagline" type="text"></label>
-              <label>Текст кнопки 1 <input name="primaryCta" type="text"></label>
-              <label>Текст кнопки 2 <input name="secondaryCta" type="text"></label>
+              <label>Подзаголовок первого экрана <input name="heroSubtitle" type="text"></label>
+              <label>Заголовок первого экрана <input name="heroTitle" type="text" required></label>
+              <label>Короткий слоган <input name="tagline" type="text"></label>
+              <label>Текст основной кнопки <input name="primaryCta" type="text"></label>
+              <label>Текст вторичной кнопки <input name="secondaryCta" type="text"></label>
               <label>Адрес <input name="address" type="text"></label>
               <label>Телефон <input name="phone" type="text"></label>
               <label>E-mail <input name="email" type="email"></label>
               <label>VK <input name="vk" type="url"></label>
               <label>Telegram <input name="telegram" type="url"></label>
-              <label>Карта (iframe src) <input name="mapEmbed" type="url"></label>
+              <label>Ссылка на карту <input name="mapEmbed" type="url"></label>
             </div>
             <label>Краткое описание школы <textarea name="aboutLead" rows="3"></textarea></label>
             <label>Подробное описание школы <textarea name="aboutDescription" rows="5"></textarea></label>
@@ -103,7 +103,7 @@
 
         <section class="admin-tab-panel" id="tab-achievements">
           <div class="admin-panel-head">
-            <h2>Редактирование достижений</h2>
+            <h2>Достижения школы</h2>
             <button class="btn btn-ghost btn-sm" id="addAchievementBtn" type="button">Добавить достижение</button>
           </div>
           <div id="achievementsEditor" class="collection-editor"></div>
@@ -112,7 +112,7 @@
 
         <section class="admin-tab-panel" id="tab-courses">
           <div class="admin-panel-head">
-            <h2>Курсы: изменение и добавление</h2>
+            <h2>Направления и курсы</h2>
             <button class="btn btn-ghost btn-sm" id="addCourseBtn" type="button">Добавить курс</button>
           </div>
           <div id="coursesEditor" class="collection-editor"></div>
@@ -121,7 +121,7 @@
 
         <section class="admin-tab-panel" id="tab-teachers">
           <div class="admin-panel-head">
-            <h2>Преподаватели</h2>
+            <h2>Команда преподавателей</h2>
             <button class="btn btn-ghost btn-sm" id="addTeacherBtn" type="button">Добавить преподавателя</button>
           </div>
           <div id="teachersEditor" class="collection-editor"></div>
@@ -130,7 +130,7 @@
 
         <section class="admin-tab-panel" id="tab-gallery">
           <div class="admin-panel-head">
-            <h2>Галерея школы</h2>
+            <h2>Фотогалерея школы</h2>
             <button class="btn btn-ghost btn-sm" id="addGalleryBtn" type="button">Добавить фото</button>
           </div>
           <div id="galleryEditor" class="collection-editor"></div>
@@ -139,7 +139,7 @@
 
         <section class="admin-tab-panel" id="tab-reviews">
           <div class="admin-panel-head">
-            <h2>Отзывы</h2>
+            <h2>Отзывы учеников и родителей</h2>
             <button class="btn btn-ghost btn-sm" id="addReviewBtn" type="button">Добавить отзыв</button>
           </div>
           <div id="reviewsEditor" class="collection-editor"></div>
@@ -147,7 +147,7 @@
         </section>
 
         <section class="admin-tab-panel" id="tab-settings">
-          <h2>Настройки админ-панели</h2>
+          <h2>Безопасность и настройки</h2>
           <form class="admin-form" id="passwordForm">
             <div class="admin-form-grid">
               <label>Текущий пароль <input type="password" name="currentPassword" autocomplete="current-password" required></label>
