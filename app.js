@@ -11,6 +11,9 @@
     .replaceAll(">", "&gt;")
     .replaceAll("\"", "&quot;");
 
+  const capitalizeWords = (value) => String(value ?? "")
+    .replace(/(^|[\s,/-])([a-zа-яё])/gi, (_, prefix, letter) => `${prefix}${letter.toUpperCase()}`);
+
   const normalizeImage = (url) => String(url ?? "")
     .replaceAll("&amp;", "&")
     .replace(/^http:\/\//i, "https://")
@@ -299,7 +302,7 @@
         <p class="course-short">${escapeHtml(course.shortDescription)}</p>
         <div class="course-details" aria-label="Дополнительная информация о курсе">
           <span class="chip">${escapeHtml(course.ageCategory)}</span>
-          <span class="chip">${escapeHtml((course.formats || []).join(", "))}</span>
+          <span class="chip">${escapeHtml(capitalizeWords((course.formats || []).join(", ")))}</span>
         </div>
         <button class="btn btn-ghost" type="button" data-open-course="${escapeHtml(course.id)}">Подробнее и запись</button>
       </article>
@@ -471,7 +474,7 @@
     byId("modalCourseTitle").textContent = course.title;
     byId("modalCourseDescription").textContent = course.fullDescription;
     byId("modalCourseAge").textContent = course.ageCategory || "12+";
-    byId("modalCourseFormats").textContent = (course.formats || ["очно"]).join(", ");
+    byId("modalCourseFormats").textContent = capitalizeWords((course.formats || ["очно"]).join(", "));
     byId("modalCourseDuration").textContent = course.duration || "6 месяцев";
     byId("modalCoursePrice").textContent = course.price || "20 000 ₽";
 
@@ -489,7 +492,7 @@
 
     const formatSelect = byId("modalFormatSelect");
     formatSelect.innerHTML = (course.formats || ["очно", "онлайн"])
-      .map((format) => `<option value="${escapeHtml(format)}">${escapeHtml(format)}</option>`)
+      .map((format) => `<option value="${escapeHtml(format)}">${escapeHtml(capitalizeWords(format))}</option>`)
       .join("");
 
     byId("courseModal").hidden = false;
